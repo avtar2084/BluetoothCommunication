@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +20,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -31,12 +34,16 @@ public class MainActivity extends AppCompatActivity {
     Button ButtonON;
     Button ButtonOFF;
     Button listPaired;
+    Button SendMessage;
+    EditText message;
     BluetoothAdapter BAdapter=BluetoothAdapter.getDefaultAdapter();;
     ListView listDevice;
     TextView textView;
     ArrayList<String> stringArr=new ArrayList<String>();
     ArrayAdapter<String> arrayAdapter;
     int index = 0;
+
+    SendRecive sendRecive;
 
     private BluetoothAdapter bAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -57,7 +64,10 @@ public class MainActivity extends AppCompatActivity {
         ButtonOFF =(Button) findViewById(R.id.bOff);
         listPaired=(Button) findViewById(R.id.listPaired);
         listDevice=(ListView) findViewById(R.id.listDevices);
+        SendMessage=(Button) findViewById(R.id.send);
+        message=(EditText) findViewById(R.id.message);
         textView=(TextView) findViewById(R.id.textView);
+
 
         BEnableIntent =new Intent(BAdapter.ACTION_REQUEST_ENABLE);
         enableRequestCode =1;
@@ -67,6 +77,20 @@ public class MainActivity extends AppCompatActivity {
 
         findPairedDevices();
 
+        sendMessage();
+
+
+    }
+
+    private void sendMessage() {
+
+        SendMessage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String str= String.valueOf(message.getText());
+                sendRecive.write(str.getBytes());
+            }
+        });
     }
 
     private void findPairedDevices() {
@@ -102,11 +126,10 @@ public class MainActivity extends AppCompatActivity {
 
 
                 /*
-                //List Available Devices
+                //List all the Available Devices
                 if(adapter.isDiscovering()){
                     adapter.cancelDiscovery();
                     //check BT permissions in manifest
-                    // checkBTPermissions();
                     textView.setText("111111111");
 
                     adapter.startDiscovery();
@@ -115,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if(!adapter.isDiscovering()){
                     //check BT permissions in manifest
-                    // checkBTPermissions();
+
                     adapter.startDiscovery();
                     IntentFilter  intentFilter=new IntentFilter();
                     intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -240,11 +263,63 @@ public class MainActivity extends AppCompatActivity {
         {
             try {
                 socket.connect();
+                sendRecive=new SendRecive(socket);
+                sendRecive.start();
+                
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+    }
+
+
+    private class SendRecive extends Thread
+    {
+        private final BluetoothSocket bluetoothSocket;
+        private final InputStream inputStream;
+        private final OutputStream outputStream;
+
+        public SendRecive (BluetoothSocket socket)
+        {
+            bluetoothSocket=socket;
+            InputStream tempIN = null;
+            OutputStream tempOut = null;
+
+            try {
+                tempIN=bluetoothSocket.getInputStream();
+                tempOut=bluetoothSocket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            inputStream=tempIN;
+            outputStream=tempOut;
+        }
+
+        public  void run()
+        {
+            byte[] buffer=new byte[1024];
+            int bytes;
+
+            while (true)
+            {
+                try {
+                    bytes= inputStream.read(buffer);
+                    textView.setText(buffer.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void write(byte[] bytes)
+        {
+            try {
+                outputStream.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 

@@ -3,37 +3,48 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:gravity="center"
+    android:padding="10dp"
+    android:orientation="vertical"
+    >
 
 
-<Button
+    <Button
         android:id="@+id/bOn"
         android:text="Connect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="130dp"
+        android:layout_width="240dp"
+        android:layout_height="40dp"
+        android:background="@drawable/gradient"
+        android:textColor="@color/white"
+        android:layout_marginStart="100dp"
         android:layout_marginTop="200dp" />
 
     <Button
         android:id="@+id/bOff"
         android:text="Disconnect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="130dp"
+        android:layout_width="240dp"
+        android:layout_height="40dp"
+        android:background="@drawable/gradient"
+        android:textColor="@color/white"
+        android:layout_marginStart="100dp"
         android:layout_marginTop="250dp" />
 
     <Button
         android:id="@+id/listPaired"
-        android:text="List Paired Devices"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="130dp"
-        android:layout_marginTop="350dp" />
+        android:text="List Devices"
+        android:layout_width="240dp"
+        android:layout_height="40dp"
+        android:background="@drawable/gradient"
+        android:textColor="@color/white"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="300dp" />
 
     <ListView
         android:id="@+id/listDevices"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="300dp" >
+
     </ListView>
 
 
@@ -41,8 +52,29 @@
         android:id="@+id/textView"
         android:layout_width="182dp"
         android:layout_height="46dp"
-        android:layout_marginStart="130dp"
+        android:layout_marginStart="100dp"
         android:layout_marginTop="450dp"
         tools:text="Sample" />
+
+    <EditText
+        android:id="@+id/message"
+        android:layout_width="182dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="550dp"
+        android:hint="Enter Message"
+        android:ems="10"
+        android:inputType="textPersonName"
+        />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="240dp"
+        android:layout_height="40dp"
+        android:background="@drawable/gradient"
+        android:textColor="@color/white"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="650dp"
+        android:text="Send message"/>
 
 </RelativeLayout>
