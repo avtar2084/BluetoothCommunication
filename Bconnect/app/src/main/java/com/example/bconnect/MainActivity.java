@@ -1,12 +1,20 @@
 package com.example.bconnect;
 
+import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -18,6 +26,8 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +38,8 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "MainAcftivity";
+
 
 
     Button ButtonON;
@@ -36,24 +47,35 @@ public class MainActivity extends AppCompatActivity {
     Button listPaired;
     Button SendMessage;
     EditText message;
-    BluetoothAdapter BAdapter=BluetoothAdapter.getDefaultAdapter();;
+    BluetoothAdapter BAdapter=BluetoothAdapter.getDefaultAdapter();
     ListView listDevice;
     TextView textView;
+    TextView recivedMessage;
+
+
+
     ArrayList<String> stringArr=new ArrayList<String>();
     ArrayAdapter<String> arrayAdapter;
     int index = 0;
 
-    SendRecive sendRecive;
+    SendReceive sendReceive;
 
     private BluetoothAdapter bAdapter = BluetoothAdapter.getDefaultAdapter();
     private BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
+    private static final String appName ="Bconnect";
     private static final UUID uuid=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID uuid2=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    private static final int psm=0;
     BluetoothDevice[] btArray;
 
     Intent BEnableIntent;
   // IntentFilter intentFilter;
     int enableRequestCode;
+
+    BroadcastReceiver broadcastReceiver;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         SendMessage=(Button) findViewById(R.id.send);
         message=(EditText) findViewById(R.id.message);
         textView=(TextView) findViewById(R.id.textView);
+        recivedMessage = (TextView) findViewById(R.id.textView1);
 
 
         BEnableIntent =new Intent(BAdapter.ACTION_REQUEST_ENABLE);
@@ -88,7 +111,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String str= String.valueOf(message.getText());
-                sendRecive.write(str.getBytes());
+                
+                sendReceive.write(str.getBytes());
             }
         });
     }
@@ -113,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
                                 index++;
                             String deviceName = device.getName();
                             String macAddress = device.getAddress();
-
                             list.add("Name: " + deviceName + "MAC Address: " + macAddress);
                         }
                         arrayAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, list);
@@ -125,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                /*
+
                 //List all the Available Devices
                 if(adapter.isDiscovering()){
                     adapter.cancelDiscovery();
@@ -140,12 +163,38 @@ public class MainActivity extends AppCompatActivity {
                     //check BT permissions in manifest
 
                     adapter.startDiscovery();
-                    IntentFilter  intentFilter=new IntentFilter();
-                    intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
-                    registerReceiver(broadcastReceiver,intentFilter);
-                    textView.setText("3333333333");
+                    //textView.setText("3333333333");
                 }
-                */
+
+
+                 broadcastReceiver=new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        String action=intent.getAction();
+                        if(BluetoothDevice.ACTION_FOUND.equals(action))
+                        {
+                            BluetoothDevice device= (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                            stringArr.add(device.getName());
+                            textView.setText("22222222");
+
+                            //textView.setText(device.getName());
+
+                            arrayAdapter.notifyDataSetChanged();
+                            arrayAdapter =new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1,stringArr);
+                            listDevice.setAdapter(arrayAdapter);
+                            Toast.makeText(getApplicationContext(),device.getName() , Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            textView.setText("else part");
+                        }
+                    }
+                };
+
+
+                IntentFilter  intentFilter=new IntentFilter();
+                intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+                registerReceiver(broadcastReceiver,intentFilter);
+
 
 
             }
@@ -166,25 +215,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action=intent.getAction();
-            if(BluetoothDevice.ACTION_FOUND.equals(action))
-            {
-                BluetoothDevice device= (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                stringArr.add(device.getName());
-                textView.setText("22222222");
-
-                textView.setText(device.getName());
-
-                arrayAdapter.notifyDataSetChanged();
-                arrayAdapter =new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1,stringArr);
-                listDevice.setAdapter(arrayAdapter);
-                Toast.makeText(getApplicationContext(),device.getName() , Toast.LENGTH_LONG).show();
-            }
-        }
-    };
 
     @Override
     public void onDestroy() {
@@ -204,6 +234,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        }
     }
 
 
@@ -220,8 +255,13 @@ public class MainActivity extends AppCompatActivity {
                     if(!BAdapter.isEnabled())
                     {
                         startActivityForResult(BEnableIntent,enableRequestCode);
+
+
                     }
                 }
+
+              // ServerClass serverClass=new ServerClass();
+               //serverClass.start();
 
             }
         });
@@ -242,18 +282,78 @@ public class MainActivity extends AppCompatActivity {
     });
     }
 
+    private class ServerClass extends Thread
+    {
+        private BluetoothServerSocket serverSocket;
+        private BluetoothServerSocket serverSocket2;
+
+
+        public ServerClass()
+        {
+            try {
+
+                serverSocket=bAdapter.listenUsingRfcommWithServiceRecord(appName,uuid);
+                serverSocket2=bAdapter.listenUsingRfcommWithServiceRecord(appName,uuid2);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                  //  serverSocket=bAdapter.listenUsingInsecureL2capChannel();
+                    //bAdapter.setName("My app");
+                    Log.i(TAG, "In Server Class " );
+                    int psm=serverSocket.getPsm();
+                    Log.i(TAG, "Server Psm Value" +psm );
+
+                    //recivedMessage.setText(String.valueOf(psm));
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void run()
+        {
+            BluetoothSocket socket=null;
+
+            while (socket==null)
+            {
+                try {
+                    socket=serverSocket.accept();
+                    sendReceive =new SendReceive(socket);
+                    sendReceive.start();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 
     private class ClientClass extends Thread
     {
         private BluetoothDevice device;
         private BluetoothSocket socket;
+        private BluetoothServerSocket l2socket;
+        private BluetoothManager bm;
+
 
         public ClientClass(BluetoothDevice device1)
         {
             device=device1;
 
             try {
-                socket=device.createRfcommSocketToServiceRecord(uuid);
+              socket=device.createRfcommSocketToServiceRecord(uuid);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                   //recivedMessage.setText("12121212");
+                    //l2socket=bAdapter.listenUsingL2capChannel();
+                    //int psm=l2socket.getPsm();
+                   //socket=device.createInsecureL2capChannel(4145);
+
+                   // socket=device.createRfcommSocketToServiceRecord(uuid);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -263,8 +363,8 @@ public class MainActivity extends AppCompatActivity {
         {
             try {
                 socket.connect();
-                sendRecive=new SendRecive(socket);
-                sendRecive.start();
+                sendReceive =new SendReceive(socket);
+                sendReceive.start();
                 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -274,13 +374,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private class SendRecive extends Thread
+    private class SendReceive extends Thread
     {
         private final BluetoothSocket bluetoothSocket;
         private final InputStream inputStream;
         private final OutputStream outputStream;
 
-        public SendRecive (BluetoothSocket socket)
+        public SendReceive(BluetoothSocket socket)
         {
             bluetoothSocket=socket;
             InputStream tempIN = null;
@@ -304,8 +404,17 @@ public class MainActivity extends AppCompatActivity {
             while (true)
             {
                 try {
+
+                    //
                     bytes= inputStream.read(buffer);
-                    textView.setText(buffer.toString());
+                    byte[] readBuff=buffer;
+                    String tempMsg=new String(readBuff,0,bytes);
+                    if(tempMsg!=null)
+                    {
+                        sendReceive.write(tempMsg.getBytes());
+                    }
+                    recivedMessage.setText(tempMsg);
+                    tempMsg=null;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

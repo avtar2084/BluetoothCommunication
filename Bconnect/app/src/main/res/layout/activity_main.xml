@@ -15,8 +15,7 @@
         android:text="Connect"
         android:layout_width="240dp"
         android:layout_height="40dp"
-        android:background="@drawable/gradient"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:layout_marginStart="100dp"
         android:layout_marginTop="200dp" />
 
@@ -25,8 +24,7 @@
         android:text="Disconnect"
         android:layout_width="240dp"
         android:layout_height="40dp"
-        android:background="@drawable/gradient"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:layout_marginStart="100dp"
         android:layout_marginTop="250dp" />
 
@@ -35,8 +33,7 @@
         android:text="List Devices"
         android:layout_width="240dp"
         android:layout_height="40dp"
-        android:background="@drawable/gradient"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:layout_marginStart="100dp"
         android:layout_marginTop="300dp" />
 
@@ -71,10 +68,17 @@
         android:id="@+id/send"
         android:layout_width="240dp"
         android:layout_height="40dp"
-        android:background="@drawable/gradient"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:layout_marginStart="100dp"
         android:layout_marginTop="650dp"
         android:text="Send message"/>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="182dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="750dp"
+        tools:text="Sample" />
 
 </RelativeLayout>
